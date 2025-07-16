@@ -1,0 +1,42 @@
+name: CI/CD Test
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "*" ]
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [ "c-cpp", "csharp", "python" ]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Simulate Build
+        run: echo "Building for ${{ matrix.language }}"
+
+  test:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testing Stage
+        run: echo "Testing (no real tests yet)"
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create artifact
+        run: |
+          mkdir dist
+          echo "Hello from empty repo" > dist/README.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: my-artifact
+          path: dist/
