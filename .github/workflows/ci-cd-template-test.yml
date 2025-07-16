@@ -9,34 +9,43 @@ on:
 jobs:
 
   build:
-    runs-on: ubuntu-latest
     strategy:
       matrix:
+        os: [ubuntu-latest, windows-latest]
         language: [ "c-cpp", "csharp", "python" ]
+    runs-on: ${{ matrix.os }}
+    name: Build on ${{ matrix.os }} - ${{ matrix.language }}
     steps:
       - uses: actions/checkout@v4
-
       - name: Simulate Build
-        run: echo "Building for ${{ matrix.language }}"
+        run: echo "Building for ${{ matrix.language }} on ${{ matrix.os }}"
 
   test:
     needs: build
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    name: Test on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Testing Stage
-        run: echo "Testing (no real tests yet)"
+        run: echo "Testing on ${{ matrix.os }} (no real tests yet)"
 
   package:
     needs: test
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    name: Package on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - name: Create artifact
         run: |
           mkdir dist
-          echo "Hello from empty repo" > dist/README.txt
+          echo "Hello from ${{ matrix.os }}" > dist/README.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: my-artifact
+          name: my-artifact-${{ matrix.os }}
           path: dist/
