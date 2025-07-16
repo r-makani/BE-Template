@@ -6,12 +6,6 @@
 
 This repository is maintained by [be-services.com](https://be-services.com/). It contains the source code, build configurations, and example applications for **Project Name**.
 
-**Project Name** is designed to provide:
-
-- High-performance embedded functionality
-- Clean, modular SDK components
-- Example integrations with target hardware platforms
-
 > **Note:** For commercial support, licensing, or customization, please contact [be-services.com](https://be-services.com/en/contact-us).
 
 ---
