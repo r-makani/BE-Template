@@ -1,4 +1,4 @@
-name: CI/CD Test
+name: Universal CI/CD Template
 
 on:
   push:
@@ -7,7 +7,6 @@ on:
     branches: [ "*" ]
 
 jobs:
-
   build:
     strategy:
       matrix:
@@ -17,20 +16,76 @@ jobs:
     name: Build on ${{ matrix.os }} - ${{ matrix.language }}
     steps:
       - uses: actions/checkout@v4
-      - name: Simulate Build
-        run: echo "Building for ${{ matrix.language }} on ${{ matrix.os }}"
+
+      - name: Setup Python
+        if: matrix.language == 'python'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Setup .NET
+        if: matrix.language == 'csharp'
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.x'
+
+      - name: Install C++ tools and Conan (Linux)
+        if: matrix.language == 'c-cpp' && matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt update
+          sudo apt install -y build-essential cmake python3-pip
+          pip install conan
+
+      - name: Install Conan (Windows)
+        if: matrix.language == 'c-cpp' && matrix.os == 'windows-latest'
+        run: pip install conan
+
+      - name: Build (Placeholder)
+        run: |
+          echo "Building ${{ matrix.language }} on ${{ matrix.os }}"
+          echo "Placehold for build steps."
+          # Optional safe checks
+          if [ "${{ matrix.language }}" = "csharp" ] && ls *.sln *.csproj 1>/dev/null 2>&1; then
+            dotnet build --configuration Release
+          elif [ "${{ matrix.language }}" = "python" ] && [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          elif [ "${{ matrix.language }}" = "c-cpp" ] && [ -f CMakeLists.txt ]; then
+            mkdir -p build && cd build
+            conan profile detect --force
+            conan install .. --build=missing
+            cmake ..
+            cmake --build .
+          else
+            echo "🟡 No project files detected for ${{ matrix.language }} — skipping real build."
+          fi
+        shell: bash
 
   test:
     needs: build
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
+        language: [ "c-cpp", "csharp", "python" ]
     runs-on: ${{ matrix.os }}
-    name: Test on ${{ matrix.os }}
+    name: Test on ${{ matrix.os }} - ${{ matrix.language }}
     steps:
       - uses: actions/checkout@v4
-      - name: Testing Stage
-        run: echo "Testing on ${{ matrix.os }} (no real tests yet)"
+
+      - name: Test (Placeholder)
+        run: |
+          echo "Testing ${{ matrix.language }} on ${{ matrix.os }}"
+          echo "Placeholder for adding test commands."
+          if [ "${{ matrix.language }}" = "csharp" ] && ls *.sln *.csproj 1>/dev/null 2>&1; then
+            dotnet test --configuration Release
+          elif [ "${{ matrix.language }}" = "python" ] && [ -d tests ]; then
+            python -m unittest discover tests || true
+          elif [ "${{ matrix.language }}" = "c-cpp" ] && [ -d build ]; then
+            cd build
+            ctest --output-on-failure || true
+          else
+            echo "No test files found."
+          fi
+        shell: bash
 
   package:
     needs: test
@@ -41,11 +96,26 @@ jobs:
     name: Package on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Create artifact
+      - name: Placeholder artifact
         run: |
-          mkdir dist
-          echo "Hello from ${{ matrix.os }}" > dist/README.txt
+          mkdir -p dist
+          echo "Artifact from ${{ matrix.os }}" > dist/README.txt
       - uses: actions/upload-artifact@v4
         with:
-          name: my-artifact-${{ matrix.os }}
+          name: package-${{ matrix.os }}
           path: dist/
+
+  deploy:
+    needs: package
+    runs-on: ubuntu-latest
+    name: Deploy Artifacts
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: downloaded-artifacts
+
+      - name: Deployment
+        run: |
+          echo "Deploying artifacts..."
+          ls downloaded-artifacts
