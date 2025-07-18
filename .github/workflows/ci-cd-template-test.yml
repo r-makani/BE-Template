@@ -1,4 +1,4 @@
-name: Universal CI/CD Template
+name: CI/CD Template
 
 on:
   push:
@@ -44,7 +44,6 @@ jobs:
         run: |
           echo "Building ${{ matrix.language }} on ${{ matrix.os }}"
           echo "Placehold for build steps."
-          # Optional safe checks
           if [ "${{ matrix.language }}" = "csharp" ] && ls *.sln *.csproj 1>/dev/null 2>&1; then
             dotnet build --configuration Release
           elif [ "${{ matrix.language }}" = "python" ] && [ -f requirements.txt ]; then
